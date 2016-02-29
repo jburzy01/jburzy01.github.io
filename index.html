@@ -46,8 +46,15 @@
 			init();
 			animate();
 
+			var loader = new THREE.FontLoader();
+			loader.load( 'helvetiker_regular.typeface.js', function ( font ) {
 
-			function init() {
+				init( font );
+				animate();
+
+			} );
+
+			function init( font ) {
 
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
@@ -119,45 +126,10 @@
 					}
 
 				}
-				// var textMaterial = new THREE.MultiMaterial( [
-				// 	new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } ), // front
-				// 	new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.SmoothShading } ) // side
-				// ] );
 
-				// var text = "test";
-				// var textGeo = new THREE.TextGeometry( text, {
-
-				// 	font: 'helvetiker',
-
-				// 	size: 70,
-				// 	height: 20,
-				// 	curveSegments: 4,
-
-				// 	bevelThickness: 2,
-				// 	bevelSize: 1.5,
-				// 	bevelEnabled: true,
-
-				// 	material: 0,
-				// 	extrudeMaterial: 1
-
-				// });
-
-				// var textMesh1 = new THREE.Mesh( textGeo, textMaterial );
-
-				// textMesh1.position.x = 0;
-				// textMesh1.position.y = 0;
-				// textMesh1.position.z = 0;
-
-				// textMesh1.rotation.x = 0;
-				// textMesh1.rotation.y = Math.PI * 2;
-
-				// var group = new THREE.Group();
-				// group.add( textMesh1 );
-
-				// scene.add( group );
 
   				var shape = new THREE.TextGeometry( 'Hello World!', {
-        			font: 'helvetiker' // Must be lowercase!
+        			font: font // Must be lowercase!
     			});
 
   				var wrapper = new THREE.MeshNormalMaterial({color: 0x00ff00});
