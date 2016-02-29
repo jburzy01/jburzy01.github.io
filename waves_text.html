@@ -17,15 +17,15 @@
 		</style>
 	</head>
 	<body>
-		<script src="../build/three.js"></script>
+		<script src="three.min.js"></script>
 
-		<script src="../examples/js/renderers/Projector.js"></script>
-		<script src="../examples/js/renderers/CanvasRenderer.js"></script>
-		<script src="../examples/js/utils/GeometryUtils.js"></script>
+		<script src="js/renderers/Projector.js"></script>
+		<script src="js/renderers/CanvasRenderer.js"></script>
+		<script src="js/utils/GeometryUtils.js"></script>
 
-		<script src="../examples/js/libs/stats.min.js"></script>
-		// <script src="helvetiker_regular.typeface.js"></script>
-		// <script src="helvetiker_bold.typeface.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+		<script src="helvetiker_regular.typeface.js"></script>
+		<script src="helvetiker_bold.typeface.js"></script>
 		<script>
 
 			var SEPARATION = 600, AMOUNTX = 25, AMOUNTY = 25;
@@ -42,12 +42,15 @@
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
 
+			var loader = new THREE.FontLoader();
+			loader.load( 'helvetiker_regular.typeface.js', function ( font ) {
 
-			init();
-			animate();
+				init( font );
+				animate();
 
+			} );
 
-			function init() {
+			function init(font) {
 
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
@@ -62,20 +65,6 @@
 				lines1 = new Array();
 				lines2 = new Array();
 
-				var PI2 = Math.PI * 2;
-				var material = new THREE.SpriteCanvasMaterial( {
-
-					color: 0xffffff,
-					program: function ( context ) {
-
-						context.beginPath();
-						context.arc( 0, 0, 0.5, 0, PI2, true );
-						context.fill();
-
-					}
-
-				} );
-
     			var linematerial = new THREE.LineBasicMaterial({
         			color: 0xffffff
     			});
@@ -86,11 +75,6 @@
 				for ( var ix = 0; ix < AMOUNTX; ix ++ ) {
 
 					for ( var iy = 0; iy < AMOUNTY; iy ++ ) {
-
-						 // particle = particles[ i ] = new THREE.Sprite( material );
-						 // particle.position.x = ix * SEPARATION - ( ( AMOUNTX * SEPARATION ) / 2 );
-						 // particle.position.z = iy * SEPARATION - ( ( AMOUNTY * SEPARATION ) / 2 );
-						 // scene.add( particle );
 
 						 particle = particles[i] = new THREE.Vector3(ix * SEPARATION - ( ( AMOUNTX * SEPARATION ) / 2 ), 0, iy * SEPARATION - ( ( AMOUNTY * SEPARATION ) / 2 ));
 
@@ -119,50 +103,61 @@
 					}
 
 				}
-				// var textMaterial = new THREE.MultiMaterial( [
-				// 	new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } ), // front
-				// 	new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.SmoothShading } ) // side
-				// ] );
 
-				// var text = "test";
-				// var textGeo = new THREE.TextGeometry( text, {
+				var text1 = "It fills all space";
+				var text2 = "and what It fills";
+				var text3 = "It is"
 
-				// 	font: 'helvetiker',
+				var textgeometry1 = new THREE.TextGeometry( text1, {
 
-				// 	size: 70,
-				// 	height: 20,
-				// 	curveSegments: 4,
+					font: font,
+					size: 80,
+					height: 20,
+					curveSegments: 2
 
-				// 	bevelThickness: 2,
-				// 	bevelSize: 1.5,
-				// 	bevelEnabled: true,
+				});
+				var textgeometry2 = new THREE.TextGeometry( text2, {
 
-				// 	material: 0,
-				// 	extrudeMaterial: 1
+					font: font,
+					size: 80,
+					height: 20,
+					curveSegments: 2
 
-				// });
+				});
+				var textgeometry3 = new THREE.TextGeometry( text3, {
 
-				// var textMesh1 = new THREE.Mesh( textGeo, textMaterial );
+					font: font,
+					size: 80,
+					height: 20,
+					curveSegments: 2
 
-				// textMesh1.position.x = 0;
-				// textMesh1.position.y = 0;
-				// textMesh1.position.z = 0;
+				});
 
-				// textMesh1.rotation.x = 0;
-				// textMesh1.rotation.y = Math.PI * 2;
 
-				// var group = new THREE.Group();
-				// group.add( textMesh1 );
+				var material = new THREE.MultiMaterial( [
+					new THREE.MeshBasicMaterial( { color: Math.random() * 0xffffff, overdraw: 0.5 } ),
+					new THREE.MeshBasicMaterial( { color: 0x000000, overdraw: 0.5 } )
+				] );
 
-				// scene.add( group );
+				var mesh1 = new THREE.Mesh( textgeometry1, material );
+				var mesh2 = new THREE.Mesh( textgeometry2, material );
+				var mesh3 = new THREE.Mesh( textgeometry3, material );
 
-  				var shape = new THREE.TextGeometry( 'Hello World!', {
-        			font: 'helvetiker' // Must be lowercase!
-    			});
+				mesh1.position.x = -100;
+				mesh1.position.y = 100;
+				mesh1.position.z = 100;
 
-  				var wrapper = new THREE.MeshNormalMaterial({color: 0x00ff00});
-  				var words = new THREE.Mesh(shape, wrapper);
-  				scene.add(words);
+				mesh2.position.x = 0;
+				mesh2.position.y = 100;
+				mesh2.position.z = 50;
+
+				mesh3.position.x = 100;
+				mesh3.position.y = 100;
+				mesh3.position.z = 25;	
+
+				scene.add( mesh1 );
+				scene.add( mesh2 );
+				scene.add( mesh3 );
 
 				renderer = new THREE.CanvasRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );

@@ -1,42 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js canvas - geometry - text</title>
+		<title>three.js canvas - particles - waves</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
-				font-family: Monospace;
-				background-color: #f0f0f0;
+				background-color: #000000;
 				margin: 0px;
 				overflow: hidden;
+			}
+
+			a {
+				color:#0078ff;
 			}
 		</style>
 	</head>
 	<body>
-
-
 		<script src="three.min.js"></script>
 
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
+		<script src="js/utils/GeometryUtils.js"></script>
 
 		<script src="js/libs/stats.min.js"></script>
-
-
+		<script src="helvetiker_regular.typeface.js"></script>
+		<script src="helvetiker_bold.typeface.js"></script>
 		<script>
 
-			var container, stats;
+			var SEPARATION = 600, AMOUNTX = 25, AMOUNTY = 25;
 
+			var container, stats;
 			var camera, scene, renderer;
 
-			var group;
+			var particles, particle, count = 0;
+			var lines1;
+			var lines2;
 
-			var targetRotation = 0;
-			var targetRotationOnMouseDown = 0;
-
-			var mouseX = 0;
-			var mouseXOnMouseDown = 0;
+			var mouseX = 0, mouseY = 0;
 
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
@@ -49,37 +50,81 @@
 
 			} );
 
-			function init( font ) {
+			function init(font) {
 
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
-				var info = document.createElement( 'div' );
-				info.style.position = 'absolute';
-				info.style.top = '10px';
-				info.style.width = '100%';
-				info.style.textAlign = 'center';
-				info.innerHTML = 'Simple Dynamic 3D Text Example by <a href="http://www.lab4games.net/zz85/blog">zz85</a><br>Drag to spin the text';
-				container.appendChild( info );
-
-				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 1000 );
-				camera.position.set( 0, 150, 500 );
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.z = 500;
+				camera.position.y = 500;
 
 				scene = new THREE.Scene();
 
-				// Get text from hash
+				particles = new Array();
+				lines1 = new Array();
+				lines2 = new Array();
 
-				var theText = "Hello three.js! :)";
+    			var linematerial = new THREE.LineBasicMaterial({
+        			color: 0xffffff
+    			});
 
-				var hash = document.location.hash.substr( 1 );
 
-				if ( hash.length !== 0 ) {
+				var i = 0;
 
-					theText = hash;
+				for ( var ix = 0; ix < AMOUNTX; ix ++ ) {
+
+					for ( var iy = 0; iy < AMOUNTY; iy ++ ) {
+
+						 particle = particles[i] = new THREE.Vector3(ix * SEPARATION - ( ( AMOUNTX * SEPARATION ) / 2 ), 0, iy * SEPARATION - ( ( AMOUNTY * SEPARATION ) / 2 ));
+
+
+						if (iy != AMOUNTY-1) {
+				 			var geometry = new THREE.Geometry();
+				 			geometry.vertices.push(new THREE.Vector3(particle.x, particle.y, particle.z));
+				 			geometry.vertices.push(new THREE.Vector3(particle.x, particle.y, particle.z + SEPARATION));
+
+							 var line1 = new THREE.Line(geometry, linematerial);
+							 lines1[i] = line1;
+							 scene.add( line1 );
+						}
+
+						if (ix != AMOUNTX-1) {
+							var geometry = new THREE.Geometry();
+							geometry.vertices.push(new THREE.Vector3(particle.x, particle.y, particle.z));
+							geometry.vertices.push(new THREE.Vector3(particle.x + SEPARATION, particle.y, particle.z ));
+
+							var line2 = new THREE.Line(geometry, linematerial);
+							lines2[i] = line2
+							scene.add( line2 );
+						}
+						i++;
+
+					}
 
 				}
 
-				var geometry = new THREE.TextGeometry( theText, {
+				var text1 = "It fills all space";
+				var text2 = "and what It fills";
+				var text3 = "It is"
+
+				var textgeometry1 = new THREE.TextGeometry( text1, {
+
+					font: font,
+					size: 80,
+					height: 20,
+					curveSegments: 2
+
+				});
+				var textgeometry2 = new THREE.TextGeometry( text2, {
+
+					font: font,
+					size: 80,
+					height: 20,
+					curveSegments: 2
+
+				});
+				var textgeometry3 = new THREE.TextGeometry( text3, {
 
 					font: font,
 					size: 80,
@@ -88,31 +133,33 @@
 
 				});
 
-				geometry.computeBoundingBox();
-
-				var centerOffset = -0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
 
 				var material = new THREE.MultiMaterial( [
 					new THREE.MeshBasicMaterial( { color: Math.random() * 0xffffff, overdraw: 0.5 } ),
 					new THREE.MeshBasicMaterial( { color: 0x000000, overdraw: 0.5 } )
 				] );
 
-				var mesh = new THREE.Mesh( geometry, material );
+				var mesh1 = new THREE.Mesh( textgeometry1, material );
+				var mesh2 = new THREE.Mesh( textgeometry2, material );
+				var mesh3 = new THREE.Mesh( textgeometry3, material );
 
-				mesh.position.x = centerOffset;
-				mesh.position.y = 100;
-				mesh.position.z = 0;
+				mesh1.position.x = -100;
+				mesh1.position.y = 100;
+				mesh1.position.z = 100;
 
-				mesh.rotation.x = 0;
-				mesh.rotation.y = Math.PI * 2;
+				mesh2.position.x = 0;
+				mesh2.position.y = 100;
+				mesh2.position.z = 50;
 
-				group = new THREE.Group();
-				group.add( mesh );
+				mesh3.position.x = 100;
+				mesh3.position.y = 100;
+				mesh3.position.z = 25;	
 
-				scene.add( group );
+				scene.add( mesh1 );
+				scene.add( mesh2 );
+				scene.add( mesh3 );
 
 				renderer = new THREE.CanvasRenderer();
-				renderer.setClearColor( 0xf0f0f0 );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild( renderer.domElement );
@@ -122,7 +169,7 @@
 				stats.domElement.style.top = '0px';
 				container.appendChild( stats.domElement );
 
-				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
@@ -146,51 +193,21 @@
 
 			//
 
-			function onDocumentMouseDown( event ) {
-
-				event.preventDefault();
-
-				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-				document.addEventListener( 'mouseup', onDocumentMouseUp, false );
-				document.addEventListener( 'mouseout', onDocumentMouseOut, false );
-
-				mouseXOnMouseDown = event.clientX - windowHalfX;
-				targetRotationOnMouseDown = targetRotation;
-
-			}
-
 			function onDocumentMouseMove( event ) {
 
 				mouseX = event.clientX - windowHalfX;
-
-				targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.02;
-
-			}
-
-			function onDocumentMouseUp( event ) {
-
-				document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
-				document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
-				document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
-
-			}
-
-			function onDocumentMouseOut( event ) {
-
-				document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
-				document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
-				document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
+				mouseY = event.clientY - windowHalfY;
 
 			}
 
 			function onDocumentTouchStart( event ) {
 
-				if ( event.touches.length == 1 ) {
+				if ( event.touches.length === 1 ) {
 
 					event.preventDefault();
 
-					mouseXOnMouseDown = event.touches[ 0 ].pageX - windowHalfX;
-					targetRotationOnMouseDown = targetRotation;
+					mouseX = event.touches[ 0 ].pageX - windowHalfX;
+					mouseY = event.touches[ 0 ].pageY - windowHalfY;
 
 				}
 
@@ -198,12 +215,12 @@
 
 			function onDocumentTouchMove( event ) {
 
-				if ( event.touches.length == 1 ) {
+				if ( event.touches.length === 1 ) {
 
 					event.preventDefault();
 
 					mouseX = event.touches[ 0 ].pageX - windowHalfX;
-					targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.05;
+					mouseY = event.touches[ 0 ].pageY - windowHalfY;
 
 				}
 
@@ -222,12 +239,90 @@
 
 			function render() {
 
-				group.rotation.y += ( targetRotation - group.rotation.y ) * 0.05;
+    			var linematerial = new THREE.LineBasicMaterial({
+        			color: 0xffffff
+    			});
+
+
+    			var y11,y12;
+    			var x1,z1;
+
+
+//				camera.position.x += ( mouseX - camera.position.x ) * .05;
+//				camera.position.y += ( - mouseY - camera.position.y ) * .05;
+//				camera.lookAt( scene.position );
+
+				var i = 0;
+
+				for ( var ix = 0; ix < AMOUNTX; ix ++ ) {
+
+					for ( var iy = 0; iy < AMOUNTY; iy ++ ) {
+
+						particle1 = particles[ i ];
+
+						var x1 = particle1.x;
+						var z1 = particle1.z;
+
+						var y21 = ( Math.sin( ( ix + count ) * 0.3 ) * 100 ) +
+							( Math.sin( ( iy + 1 + count ) * 0.5 ) * 100 );
+						var y22 = ( Math.sin( ( ix + 1 + count ) * 0.3 ) * 100 ) +
+							( Math.sin( ( iy + count ) * 0.5 ) * 100 );
+
+						if(i % AMOUNTX == 0) {
+							y11 = ( Math.sin( ( ix + count ) * 0.3 ) * 100 ) +
+							( Math.sin( ( iy + count ) * 0.5 ) * 100 );
+						}
+						else {
+							y11 = lines1[i-1].geometry.vertices[1].y;
+						}
+
+						if(i <= AMOUNTY) {
+							y12 = y11;
+						}
+						else {
+							y12 = lines2[i-AMOUNTY].geometry.vertices[1].y;
+						}
+
+
+						if (iy != AMOUNTY-1) {
+							var geometry1 = new THREE.Geometry();
+							geometry1.vertices.push(new THREE.Vector3(x1, y11, z1));
+							geometry1.vertices.push(new THREE.Vector3(x1, y21, z1 + SEPARATION));
+
+							var line1 = new THREE.Line(geometry1, linematerial);
+							scene.remove(lines1[i]);
+							scene.add( line1 );
+							lines1[i] = line1;
+
+						}
+
+						if (ix != AMOUNTX-1) {
+							var geometry2 = new THREE.Geometry();
+							geometry2.vertices.push(new THREE.Vector3(x1, y12, z1));
+							geometry2.vertices.push(new THREE.Vector3(x1 + SEPARATION, y22, z1));
+
+							var line2 = new THREE.Line(geometry2, linematerial);
+							scene.remove(lines2[i])
+							scene.add( line2 );
+							lines2[i] = line2;
+						}
+
+						i++;
+
+					}
+
+				}
+
 				renderer.render( scene, camera );
+
+				count += 0.1;
 
 			}
 
 		</script>
-
 	</body>
 </html>
+
+
+
+
