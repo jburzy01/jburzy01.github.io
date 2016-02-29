@@ -28,7 +28,7 @@
 		<script src="helvetiker_bold.typeface.js"></script>
 		<script>
 
-			var SEPARATION = 200, AMOUNTX = 25, AMOUNTY = 25;
+			var SEPARATION = 500, AMOUNTX = 25, AMOUNTY = 25;
 
 			var container, stats;
 			var camera, scene, renderer;
@@ -158,6 +158,8 @@
 				scene.add( mesh1 );
 				scene.add( mesh2 );
 				scene.add( mesh3 );
+
+				scene.fog = new THREE.FogExp2( 0x2F4F4F, 0.0025 );
 
 				renderer = new THREE.CanvasRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
