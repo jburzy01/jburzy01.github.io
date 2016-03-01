@@ -2,183 +2,106 @@
 <html lang="en">
 	<head>
 		<title>jackson burzynski</title>
-		<link href="site.css" rel="stylesheet">
-
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
-				background-color: #000000;
+				font-family: Monospace;
+				background-color: #f0f0f0;
 				margin: 0px;
 				overflow: hidden;
 			}
-
-			a {
-				color:#0078ff;
-			}
 		</style>
 	</head>
-	<nav id="nav01"></nav>
 	<body>
 		<script src="three.min.js"></script>
-
 		<script src="js/renderers/Projector.js"></script>
 		<script src="js/renderers/CanvasRenderer.js"></script>
-		<script src="js/utils/GeometryUtils.js"></script>
 
-		<script src="js/libs/stats.min.js"></script>
-		<script src="helvetiker_regular.typeface.js"></script>
-		<script src="helvetiker_bold.typeface.js"></script>
+
+		<script id="vertexShader" type="x-shader/x-vertex">
+		    varying vec2 vUv;
+
+		    void main() {
+		        vUv = uv;
+
+		        gl_Position =   projectionMatrix * 
+		                        modelViewMatrix * 
+		                        vec4(position,1.0);
+		    }
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			uniform sampler2D texture1;
+			varying vec2 vUv;
+			void main() 
+			{
+			    vec4 baseColor  = texture2D( texture1, vUv );
+			    gl_FragColor = baseColor;
+			} 
+
+		</script>
+
 		<script>
 
-			var SEPARATION = 500, AMOUNTX = 25, AMOUNTY = 25;
-
-			var container, stats;
+			var container;
 			var camera, scene, renderer;
-
-			var particles, particle, count = 0;
-			var lines1;
-			var lines2;
-
-			var mouseX = 0, mouseY = 0;
+			var bgScene, bgCam;
 
 			var windowHalfX = window.innerWidth / 2;
-			var windowHalfY = window.innerHeight / 2;
+			var windowHalfY = window.innerHeight / 2
 
-			var loader = new THREE.FontLoader();
-			loader.load( 'helvetiker_regular.typeface.js', function ( font ) {
+			document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
-				init( font );
-				animate();
+			init();
+			animate();
 
-			} );
-
-			function init(font) {
+			function init() {
 
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
-				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
-				camera.position.z = 1500;
-				camera.position.y = 500;
+				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.set( 0, 300, 500 );
 
 				scene = new THREE.Scene();
 
-				particles = new Array();
-				lines1 = new Array();
-				lines2 = new Array();
+				var texture = new THREE.TextureLoader().load( "files/test.jpg" );
+				texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
 
-    			var linematerial = new THREE.LineBasicMaterial({
-        			color: 0xffffff
-    			});
+				var vertShader = document.getElementById('vertexShader').innerHTML;
+    			var fragShader = document.getElementById('fragmentShader').innerHTML;
 
+				var uniforms = {
+				    texture1: { type: "t", value: texture }
+				};
 
-				var i = 0;
-
-				for ( var ix = 0; ix < AMOUNTX; ix ++ ) {
-
-					for ( var iy = 0; iy < AMOUNTY; iy ++ ) {
-
-						 particle = particles[i] = new THREE.Vector3(ix * SEPARATION - ( ( AMOUNTX * SEPARATION ) / 2 ), 0, iy * SEPARATION - ( ( AMOUNTY * SEPARATION ) / 2 ));
-
-
-						if (iy != AMOUNTY-1) {
-				 			var geometry = new THREE.Geometry();
-				 			geometry.vertices.push(new THREE.Vector3(particle.x, particle.y, particle.z));
-				 			geometry.vertices.push(new THREE.Vector3(particle.x, particle.y, particle.z + SEPARATION));
-
-							 var line1 = new THREE.Line(geometry, linematerial);
-							 lines1[i] = line1;
-							 scene.add( line1 );
-						}
-
-						if (ix != AMOUNTX-1) {
-							var geometry = new THREE.Geometry();
-							geometry.vertices.push(new THREE.Vector3(particle.x, particle.y, particle.z));
-							geometry.vertices.push(new THREE.Vector3(particle.x + SEPARATION, particle.y, particle.z ));
-
-							var line2 = new THREE.Line(geometry, linematerial);
-							lines2[i] = line2
-							scene.add( line2 );
-						}
-						i++;
-
-					}
-
-				}
-
-				var text1 = "It fills all space";
-				var text2 = "and what It fills";
-				var text3 = "It is"
-
-				var textgeometry1 = new THREE.TextGeometry( text1, {
-
-					font: font,
-					size: 80,
-					height: 20,
-					curveSegments: 2
-
-				});
-				var textgeometry2 = new THREE.TextGeometry( text2, {
-
-					font: font,
-					size: 80,
-					height: 20,
-					curveSegments: 2
-
-				});
-				var textgeometry3 = new THREE.TextGeometry( text3, {
-
-					font: font,
-					size: 80,
-					height: 20,
-					curveSegments: 2
-
-				});
+			    var material = new THREE.ShaderMaterial({
+			        uniforms: uniforms,
+			        vertexShader: vertShader,
+			        fragmentShader: fragShader
+			    });
 
 
-				var material = new THREE.MultiMaterial( [
-					new THREE.MeshBasicMaterial( { color: 0xffffff, overdraw: 0.5 } ),
-					new THREE.MeshBasicMaterial( { color: 0x000000, overdraw: 0.5 } )
-				] );
+  				var geometry = new THREE.PlaneGeometry(2, 2, 0);
+				var material = new THREE.MeshPhongMaterial( { map: texture } );
 
-				var mesh1 = new THREE.Mesh( textgeometry1, material );
-				var mesh2 = new THREE.Mesh( textgeometry2, material );
-				var mesh3 = new THREE.Mesh( textgeometry3, material );
+				var bg = new THREE.Mesh( geometry, material);
 
-				mesh1.position.x = -1500;
-				mesh1.position.y = 500;
-				mesh1.position.z = -1500;
+				bg.material.depthTest = false;
+				bg.material.depthWrite = false;
 
-				mesh2.position.x = 0;
-				mesh2.position.y = 100;
-				mesh2.position.z = -1000;
+				bgScene = new THREE.Scene();
+				bgCam = new THREE.Camera();
+				bgScene.add(bgCam);
+				bgScene.add(bg);
 
-				mesh3.position.x = 1500;
-				mesh3.position.y = 100;
-				mesh3.position.z = -500;	
 
-				scene.add( mesh1 );
-				scene.add( mesh2 );
-				scene.add( mesh3 );
-
-				scene.fog = new THREE.FogExp2( 0x2F4F4F, 0.0025 );
-
-				renderer = new THREE.CanvasRenderer();
+				renderer = new THREE.WebGLRenderer();
+				renderer.setClearColor( 0x000000 );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild( renderer.domElement );
-
-				// stats = new Stats();
-				// stats.domElement.style.position = 'absolute';
-				// stats.domElement.style.top = '0px';
-				// container.appendChild( stats.domElement );
-
-				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
-
-				//
 
 				window.addEventListener( 'resize', onWindowResize, false );
 
@@ -195,142 +118,43 @@
 				renderer.setSize( window.innerWidth, window.innerHeight );
 
 			}
-
-			//
-
-			function onDocumentMouseMove( event ) {
-
-				mouseX = event.clientX - windowHalfX;
-				mouseY = event.clientY - windowHalfY;
-
-			}
-
+			
 			function onDocumentTouchStart( event ) {
+				
+				event.preventDefault();
+				
+				event.clientX = event.touches[0].clientX;
+				event.clientY = event.touches[0].clientY;
+				onDocumentMouseDown( event );
 
-				if ( event.touches.length === 1 ) {
+			}	
 
-					event.preventDefault();
 
-					mouseX = event.touches[ 0 ].pageX - windowHalfX;
-					mouseY = event.touches[ 0 ].pageY - windowHalfY;
+			function onDocumentMouseMove(event) {
 
-				}
-
-			}
-
-			function onDocumentTouchMove( event ) {
-
-				if ( event.touches.length === 1 ) {
-
-					event.preventDefault();
-
-					mouseX = event.touches[ 0 ].pageX - windowHalfX;
-					mouseY = event.touches[ 0 ].pageY - windowHalfY;
-
-				}
+				mouseX = ( event.clientX - windowHalfX ) * 10;
+				mouseY = ( event.clientY - windowHalfY ) * 10;
 
 			}
-
-			//
+			
 
 			function animate() {
 
 				requestAnimationFrame( animate );
-
 				render();
-//				stats.update();
 
 			}
+
 
 			function render() {
 
-    			var linematerial = new THREE.LineBasicMaterial({
-        			color: 0xffffff
-    			});
-
-
-    			var y11,y12;
-    			var x1,z1;
-
-
-				camera.position.x += ( mouseX - camera.position.x ) * .05;
-				camera.position.y += ( - mouseY - camera.position.y ) * .05;
-				camera.lookAt( scene.position );
-
-				var i = 0;
-
-				for ( var ix = 0; ix < AMOUNTX; ix ++ ) {
-
-					for ( var iy = 0; iy < AMOUNTY; iy ++ ) {
-
-						particle1 = particles[ i ];
-
-						var x1 = particle1.x;
-						var z1 = particle1.z;
-
-						var y21 = ( Math.sin( ( ix + count ) * 0.3 ) * 100 ) +
-							( Math.sin( ( iy + 1 + count ) * 0.5 ) * 100 );
-						var y22 = ( Math.sin( ( ix + 1 + count ) * 0.3 ) * 100 ) +
-							( Math.sin( ( iy + count ) * 0.5 ) * 100 );
-
-						if(i % AMOUNTX == 0) {
-							y11 = ( Math.sin( ( ix + count ) * 0.3 ) * 100 ) +
-							( Math.sin( ( iy + count ) * 0.5 ) * 100 );
-						}
-						else {
-							y11 = lines1[i-1].geometry.vertices[1].y;
-						}
-
-						if(i <= AMOUNTY) {
-							y12 = y11;
-						}
-						else {
-							y12 = lines2[i-AMOUNTY].geometry.vertices[1].y;
-						}
-
-
-						if (iy != AMOUNTY-1) {
-							var geometry1 = new THREE.Geometry();
-							geometry1.vertices.push(new THREE.Vector3(x1, y11, z1));
-							geometry1.vertices.push(new THREE.Vector3(x1, y21, z1 + SEPARATION));
-
-							var line1 = new THREE.Line(geometry1, linematerial);
-							scene.remove(lines1[i]);
-							scene.add( line1 );
-							lines1[i] = line1;
-
-						}
-
-						if (ix != AMOUNTX-1) {
-							var geometry2 = new THREE.Geometry();
-							geometry2.vertices.push(new THREE.Vector3(x1, y12, z1));
-							geometry2.vertices.push(new THREE.Vector3(x1 + SEPARATION, y22, z1));
-
-							var line2 = new THREE.Line(geometry2, linematerial);
-							scene.remove(lines2[i])
-							scene.add( line2 );
-							lines2[i] = line2;
-						}
-
-						i++;
-
-					}
-
-				}
+				renderer.autoClear = false;
+				renderer.clear();
+				renderer.render(bgScene, bgCam);
 
 				renderer.render( scene, camera );
-
-				count += 0.1;
-
 			}
 
 		</script>
-		<canvas></canvas>
-
-		<script src="script.js"></script>
 	</body>
 </html>
-
-
-
-
