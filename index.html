@@ -20,25 +20,25 @@
 
 
 		<script id="vertexShader" type="x-shader/x-vertex">
-		    varying vec2 vUv;
+		    // varying vec2 vUv;
 
-		    void main() {
-		        vUv = uv;
+		    // void main() {
+		    //     vUv = uv;
 
-		        gl_Position =   projectionMatrix * 
-		                        modelViewMatrix * 
-		                        vec4(position,1.0);
-		    }
+		    //     gl_Position =   projectionMatrix * 
+		    //                     modelViewMatrix * 
+		    //                     vec4(position,1.0);
+		    // }
 		</script>
 
 		<script id="fragmentShader" type="x-shader/x-fragment">
-			uniform sampler2D texture1;
-			varying vec2 vUv;
-			void main() 
-			{
-			    vec4 baseColor  = texture2D( texture1, vUv );
-			    gl_FragColor = baseColor;
-			} 
+			// uniform sampler2D texture1;
+			// varying vec2 vUv;
+			// void main() 
+			// {
+			//     vec4 baseColor  = texture2D( texture1, vUv );
+			//     gl_FragColor = baseColor;
+			// } 
 
 		</script>
 
@@ -62,19 +62,18 @@
 				document.body.appendChild( container );
 
 				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-				camera.position.set( 0, 300, 500 );
 
 				scene = new THREE.Scene();
 
 				var texture = new THREE.TextureLoader().load( "files/test.jpg" );
 				texture.wrapS = texture.wrapT = THREE.RepeatWrapping; 
 
-				var vertShader = document.getElementById('vertexShader').innerHTML;
-    			var fragShader = document.getElementById('fragmentShader').innerHTML;
+				// var vertShader = document.getElementById('vertexShader').innerHTML;
+    // 			var fragShader = document.getElementById('fragmentShader').innerHTML;
 
-				var uniforms = {
-				    texture1: { type: "t", value: texture }
-				};
+				// var uniforms = {
+				//     texture1: { type: "t", value: texture }
+				// };
 
 			    // var material = new THREE.ShaderMaterial({
 			    //     uniforms: uniforms,
@@ -83,18 +82,19 @@
 			    // });
 
 
-  				var geometry = new THREE.PlaneGeometry(2, 2, 0);
 				var material = new THREE.MeshPhongMaterial( { map: texture } );
 
-				var bg = new THREE.Mesh( geometry, material);
+			    var ball = new THREE.Mesh(new THREE.SphereGeometry(1, 50, 50), material);
+			    scene.add(ball);
 
-				bg.material.depthTest = false;
-				bg.material.depthWrite = false;
 
-				bgScene = new THREE.Scene();
-				bgCam = new THREE.Camera();
-				bgScene.add(bgCam);
-				bgScene.add(bg);
+				// bg.material.depthTest = false;
+				// bg.material.depthWrite = false;
+
+				// bgScene = new THREE.Scene();
+				// bgCam = new THREE.Camera();
+				// bgScene.add(bgCam);
+				// bgScene.add(bg);
 
 
 				renderer = new THREE.CanvasRenderer();
@@ -148,9 +148,9 @@
 
 			function render() {
 
-				renderer.autoClear = false;
-				renderer.clear();
-				renderer.render(bgScene, bgCam);
+				// renderer.autoClear = false;
+				// renderer.clear();
+				// renderer.render(bgScene, bgCam);
 
 				renderer.render( scene, camera );
 			}
